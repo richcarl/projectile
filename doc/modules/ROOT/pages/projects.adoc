@@ -565,7 +565,7 @@ Let's take a closer look at `projectile-project-root-functions`:
     projectile-root-marked
     projectile-root-bottom-up
     projectile-root-top-down
-    projectile-root-top-down-recurring)
+    projectile-root-bottom-up-recurring)
   "A list of functions for finding project roots."
   :group 'projectile
   :type '(repeat function))
@@ -577,13 +577,13 @@ precedence with respect to project detection. Let's examine the defaults:
 
 * `projectile-root-local` looks for project path set via the buffer-local variable `projectile-project-root`. Typically you'd set this variable via `.dir-locals.el` and it will take precedence over everything else.
 
-* `projectile-root-marked` looks for `.projectile` (or whatever you've set as the value of `projectile-dirconfig-file`). The idea is that normally if you have a `.projectile` file you'd like it to override the normal project root discovery logic.
+* `projectile-root-marked` looks for `.projectile` (or whatever you've set as the value of `projectile-dirconfig-file`) just like `projectile-root-bottom-up`. The idea is that normally if you have a `.projectile` file you'd like it to override the normal project root discovery logic.
 
 * `projectile-root-bottom-up` will start looking for a project marker file/folder(e.g. `.projectile`, `.hg`, `.git`) from the current folder (a.k.a. `default-directory` in Emacs lingo) up the directory tree. It will return the first match it discovers. The assumption is pretty simple - the root marker appear only once, at the root folder of a project. If a root marker appear in several nested folders (e.g. you've got nested git projects), the bottom-most (closest to the current dir) match has precedence. You can customize the root markers recognized by this function via `projectile-project-root-files-bottom-up`
 
 * `projectile-root-top-down` is similar, but it will return the top-most (farthest from the current directory) match. It's configurable via `projectile-project-root-files` and all project manifest markers like `pom.xml`, `Gemfile`, `project.clj`, etc go there.
 
-* `projectile-root-top-down-recurring` will look for project markers that can appear at every level of a project (e.g. `Makefile` or `.svn`) and will return the top-most match for those.
+* `projectile-root-bottom-up-recurring` will look for project markers that can appear at every level of a project (e.g. `Makefile` or `.svn`) and will return the bottom-most match (closest to the current folder) that does not also have a marker in its parent directory. This is analogous to `projectile-root-bottom-up` but with recurring marker files.
 
 The default ordering should work well for most people, but depending on the structure of your project you might want to tweak it.
 

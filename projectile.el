@@ -318,7 +318,7 @@ used."
     "cscope.out"         ; cscope
     )
   "A list of files considered to mark the root of a project.
-The topmost match has precedence.
+The topmost (outermost) match has precedence.
 See `projectile-register-project-type'."
   :group 'projectile
   :type '(repeat string))
@@ -333,18 +333,23 @@ See `projectile-register-project-type'."
     ".pijul"      ; Pijul VCS root dir
     )
   "A list of files considered to mark the root of a project.
-The bottommost (parentmost) match has precedence."
+The bottommost (innermost) match has precedence."
   :group 'projectile
   :type '(repeat string))
 
-(defcustom projectile-project-root-files-top-down-recurring
+(define-obsolete-variable-alias 'projectile-project-root-files-top-down-recurring
+  'projectile-project-root-files-bottom-up-recurring "2.9.0")
+
+(defcustom projectile-project-root-files-bottom-up-recurring
   '(".svn" ; Svn VCS root dir
     "CVS"  ; Csv VCS root dir
     "Makefile")
-  "A list of files considered to mark the root of a project.
-The search starts at the top and descends down till a directory
-that contains a match file but its parent does not.  Thus, it's a
-bottommost match in the topmost sequence of directories
+  "A list of files considered to mark the root of a project, but may also recur
+in project subdirectories.
+
+The search starts at the current directory and moves upwards until a directory
+is found that contains a matching file but its parent does not.  Thus, it's a
+topmost (outermost) match in the bottommost (innermost) sequence of directories
 containing a root file."
   :group 'projectile
   :type '(repeat string))
@@ -356,7 +361,7 @@ containing a root file."
     projectile-root-marked
     projectile-root-bottom-up
     projectile-root-top-down
-    projectile-root-top-down-recurring)
+    projectile-root-bottom-up-recurring)
   "A list of functions for finding project root folders.
 The functions will be run until one of them returns a project folder.
 Reordering the default functions will alter the project discovery
@@ -1226,7 +1231,7 @@ This is intended to be used as a file local variable.")
 (defun projectile-root-top-down (dir &optional list)
   "Identify a project root in DIR by top-down search for files in LIST.
 If LIST is nil, use `projectile-project-root-files' instead.
-Return the first (topmost) matched directory or nil if not found."
+Return the first (outermost) matched directory or nil if not found."
   (projectile-locate-dominating-file
    dir
    (lambda (dir)
@@ -1234,13 +1239,13 @@ Return the first (topmost) matched directory or nil if not found."
                  (or list projectile-project-root-files)))))
 
 (defun projectile-root-marked (dir)
-  "Identify a project root in DIR by search for `projectile-dirconfig-file`."
+  "Identify a project root in DIR by bottom-up search for `projectile-dirconfig-file`."
   (projectile-root-bottom-up dir (list projectile-dirconfig-file)))
 
 (defun projectile-root-bottom-up (dir &optional list)
   "Identify a project root in DIR by bottom-up search for files in LIST.
 If LIST is nil, use `projectile-project-root-files-bottom-up' instead.
-Return the first (bottommost) matched directory or nil if not found."
+Return the first (innermost) matched directory or nil if not found."
   (projectile-locate-dominating-file
    dir
    (lambda (directory)
@@ -1248,11 +1253,15 @@ Return the first (bottommost) matched directory or nil if not found."
                           (or list projectile-project-root-files-bottom-up))))
        (cl-some (lambda (file) (and file (file-exists-p file))) files)))))
 
-(defun projectile-root-top-down-recurring (dir &optional list)
+
+(define-obsolete-function-alias 'projectile-root-top-down-recurring
+  'projectile-root-bottom-up-recurring "2.9.0")
+
+(defun projectile-root-bottom-up-recurring (dir &optional list)
   "Identify a project root in DIR by recurring top-down search for files in LIST.
-If LIST is nil, use `projectile-project-root-files-top-down-recurring'
-instead.  Return the last (bottommost) matched directory in the
-topmost sequence of matched directories.  Nil otherwise."
+If LIST is nil, use `projectile-project-root-files-bottom-up-recurring'
+instead.  Return the last (outermost) matched directory in the
+first (innermost) sequence of matched directories.  Nil otherwise."
   (cl-some
    (lambda (f)
      (projectile-locate-dominating-file
