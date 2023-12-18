@@ -1205,6 +1205,8 @@ Instead of a string, NAME can also be a predicate taking one argument
 \(a directory) and returning a non-nil value if that directory is the one for
 which we're looking."
   ;; copied from files.el (stripped comments) emacs-24 bzr branch 2014-03-28 10:20
+  ;; NOTE: Emacs files.el now does `(abbreviate-file-name (expand-file-name file))` to
+  ;; canonicalize `file` as the first step - should we update this code to do the same?
   (setq file (abbreviate-file-name file))
   (let ((root nil)
         try)
@@ -1212,6 +1214,7 @@ which we're looking."
                     (null file)
                     (string-match locate-dominating-stop-dir-regexp file)))
       (setq try (if (stringp name)
+                    ;; use our versions of file-exists-p and expand-file-name:
                     (projectile-file-exists-p (projectile-expand-file-name-wildcard name file))
                   (funcall name file)))
       (cond (try (setq root file))
@@ -1232,6 +1235,7 @@ This is intended to be used as a file local variable.")
   "Identify a project root in DIR by top-down search for files in LIST.
 If LIST is nil, use `projectile-project-root-files' instead.
 Return the first (outermost) matched directory or nil if not found."
+;; FIXME: this works innermost-out, instead of as advertised
   (projectile-locate-dominating-file
    dir
    (lambda (dir)
